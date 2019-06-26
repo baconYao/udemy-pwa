@@ -1,5 +1,9 @@
 var deferredPrompt;   // defer延期，延緩。用來當作是出現「安裝到screen的banner」的控制變數
 
+if(!window.Promise) {
+  window.Promise = Promise;
+}
+
 // 註冊service worker
 if("serviceWorker" in navigator) {
   navigator.serviceWorker
