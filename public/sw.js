@@ -1,6 +1,9 @@
 // service worker
 'use strict';
 
+var CACHE_STATIC_NAME = 'static-v4';
+var CACHE_DYNAMIC_NAME = 'dynamic-v2';
+
 // 加入 install event listener
 self.addEventListener("install", function(event) {
   console.log("[Service Worker] Installing Service Worker...", event);
@@ -32,6 +35,20 @@ self.addEventListener("install", function(event) {
 // 加入 activate event listener
 self.addEventListener("activate", function(event) {
   console.log("[Service Worker] Activating Service Worker...", event);
+  // 由於activate是每次在open/reload app時都會觸發，因此適合用來檢查cache的版本是否異動
+  event.waitUntil(
+    // caches.keys() 回傳 sub-caches name (ex: static & dynamic)
+    caches.keys()
+      .then(function(keyList) {
+        return Promise.all(keyList.map(function(key) {
+          // 若cache的版本異動，則刪除cache內的所有資料
+          if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
+            console.log('[Service Worker] Removing old cache.', key);
+            return caches.delete(key);
+          }
+        }));
+      })
+  );
   return self.clients.claim();
 });
 
