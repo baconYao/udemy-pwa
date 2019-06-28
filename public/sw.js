@@ -10,7 +10,7 @@ self.addEventListener("install", function(event) {
   // 等到cache完成
   event.waitUntil(
     // 開啟名為 'static' 的 Cache Storage
-    caches.open('static')
+    caches.open(CACHE_STATIC_NAME)
       .then(function(cache) {
         console.log("[Service Worker] Precaching App Sehll...");        
         cache.addAll([
@@ -61,7 +61,6 @@ self.addEventListener("fetch", function(event) {
   // event.respondWith(null);    // 每當有fetch被trigger時，都回傳null值
   // event.respondWith(fetch(event.request));     // 有fetch被trigger時，取得真實的resources
 
-  // 動態cache已經被訪問過的頁面
   event.respondWith(
     // 將req和caches內的物件比對，若有，則回傳第一個找到的物件
     caches.match(event.request)
@@ -70,10 +69,10 @@ self.addEventListener("fetch", function(event) {
           return response;
         } else {
           // 沒有被cache過
-          return fetch(event.request)       // 發出req請求
+          return fetch(event.request)       // 發出http req請求
             .then(function(res) {
-              // 收到res，將此res快取在名為dynamic的cache內
-              return caches.open('dynamic')
+              // 收到res，將此res快取在dynamic的cache內，動態cache住已經被訪問過的頁面
+              return caches.open(CACHE_DYNAMIC_NAME)
                 .then(function(cache) {
                   //cache.put: key-value
                   // 由於 Request、Response 物件，只能被讀取一次 ，因此需要利用clone method來製作一個副本 (https://notfalse.net/31/fetch-api#-Clone)
@@ -84,9 +83,9 @@ self.addEventListener("fetch", function(event) {
             })
             .catch(function(err) {        // 當沒有網路時，就會被catch，此時會到Static cache裡面找offline.html，並回傳之
               return caches.open(CACHE_STATIC_NAME)
-              .then(function(cache) {
-                return cache.match('/offline.html');
-              });
+                .then(function(cache) {
+                  return cache.match('/offline.html');
+                });
             });
         }
       })
