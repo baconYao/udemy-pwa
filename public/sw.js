@@ -16,6 +16,7 @@ self.addEventListener("install", function(event) {
         cache.addAll([
           '/',
           '/index.html',
+          '/offline.html',
           '/src/js/app.js',
           '/src/js/feed.js',
           '/src/js/promise.js',
@@ -80,6 +81,12 @@ self.addEventListener("fetch", function(event) {
                   // 回傳原本的res，否則html收不到該有的res會出錯
                   return res;
                 })
+            })
+            .catch(function(err) {        // 當沒有網路時，就會被catch，此時會到Static cache裡面找offline.html，並回傳之
+              return caches.open(CACHE_STATIC_NAME)
+              .then(function(cache) {
+                return cache.match('/offline.html');
+              });
             });
         }
       })
